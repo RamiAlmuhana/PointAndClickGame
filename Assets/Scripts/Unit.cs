@@ -9,7 +9,7 @@ public class Unit : MonoBehaviour
     public int unitLevel;
 
     public int damage;
-
+    
     public int maxHealth;
     public int currentHealth;
 
@@ -28,6 +28,11 @@ public class Unit : MonoBehaviour
         currentHealth += amount;
         if (currentHealth > maxHealth)
             currentHealth = maxHealth;
+    }
+    
+    public int GenerateRandomDamage(int minDamage, int maxDamage)
+    {
+        return Random.Range(minDamage, maxDamage);
     }
 
 }

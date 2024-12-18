@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Je moeder
   unitLevel: 2
-  damage: 5
+  damage: 0
   maxHealth: 30
   currentHealth: 30
 --- !u!1 &3715403972604507564

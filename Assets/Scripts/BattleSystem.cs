@@ -76,7 +76,10 @@ public class BattleSystem : MonoBehaviour
 
 		yield return new WaitForSeconds(1f);
 
-		bool isDead = playerUnit.TakeDamage(enemyUnit.damage);
+		int randomDamage = enemyUnit.GenerateRandomDamage(1, 11);
+		bool isDead = playerUnit.TakeDamage(randomDamage);
+
+		dialogueText.text = enemyUnit.unitName + " doet " + randomDamage + " damage!";
 
 		playerHUD.SetHp(playerUnit.currentHealth);
 
