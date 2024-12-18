@@ -72,17 +72,25 @@ public class BattleSystem : MonoBehaviour
 
 	IEnumerator EnemyTurn()
 	{
-		dialogueText.text = enemyUnit.unitName + " valt aan!!";
-
-		yield return new WaitForSeconds(1f);
-
+		
 		int randomDamage = enemyUnit.GenerateRandomDamage(1, 11);
 		bool isDead = playerUnit.TakeDamage(randomDamage);
+		int action = Random.Range(0, 2);
+		Debug.Log(enemyUnit.currentHealth);
 
-		dialogueText.text = enemyUnit.unitName + " doet " + randomDamage + " damage!";
-
-		playerHUD.SetHp(playerUnit.currentHealth);
-
+		if (action == 0)
+		{
+			dialogueText.text = enemyUnit.unitName + " doet " + randomDamage + " damage!";
+			playerHUD.SetHp(playerUnit.currentHealth);
+		}
+		else
+		{
+			dialogueText.text = enemyUnit.unitName + " healt zichzelf!";
+			enemyUnit.Heal(5);
+			enemyHUD.SetHp(enemyUnit.currentHealth);
+			Debug.Log(enemyUnit.currentHealth);
+		}
+		
 		yield return new WaitForSeconds(1f);
 
 		if(isDead)
