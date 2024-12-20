@@ -156,6 +156,8 @@ MonoBehaviour:
   playerHUD: {fileID: 1752799893}
   enemyHUD: {fileID: 1814549924}
   state: 0
+  currentScene:
+    m_Handle: 0
 --- !u!4 &127104968
 Transform:
   m_ObjectHideFlags: 0
@@ -2488,8 +2490,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -244.00003, y: 0}
-  m_SizeDelta: {x: -532.91, y: 0}
+  m_AnchoredPosition: {x: -166.00003, y: 0}
+  m_SizeDelta: {x: -379.74, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1219530018
 MonoBehaviour:
@@ -2556,7 +2558,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 3
+  m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
