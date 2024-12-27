@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fd13dad3d042b24b8d9fb11034fa1f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  unitName: Je moeder
+  unitName: Abdo
   unitLevel: 2
   damage: 0
   maxHealth: 30
