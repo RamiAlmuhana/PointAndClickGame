@@ -9,214 +9,236 @@ public enum BattleState { START, PLAYERTURN, ENEMYTURN, WON, LOST }
 
 public class BattleSystem : MonoBehaviour
 {
+    public GameObject playerPrefab;
+    public GameObject enemyPrefab;
 
-	public GameObject playerPrefab;
-	public GameObject enemyPrefab;
+    public Transform playerBattleStation;
+    public Transform enemyBattleStation;
 
-	public Transform playerBattleStation;
-	public Transform enemyBattleStation;
+    Unit playerUnit;
+    Unit enemyUnit;
 
-	Unit playerUnit;
-	Unit enemyUnit;
+    public TMP_Text dialogueText;
 
-	public TMP_Text dialogueText;
+    public BattleHud playerHUD;
+    public BattleHud enemyHUD;
 
-	public BattleHud playerHUD;
-	public BattleHud enemyHUD;
+    public BattleState state;
 
-	public BattleState state;
-	
-	public bool actionTaken = false;
+    public bool actionTaken = false;
 
-	
     void Start()
     {
-		state = BattleState.START;
-		StartCoroutine(SetupBattle());
+        state = BattleState.START;
+        StartCoroutine(SetupBattle());
     }
 
-	IEnumerator SetupBattle()
-	{
+    IEnumerator SetupBattle()
+    {
+        GameObject playerGO = Instantiate(playerPrefab, playerBattleStation);
+        playerUnit = playerGO.GetComponent<Unit>();
 
-		GameObject playerGO = Instantiate(playerPrefab, playerBattleStation);
-		playerUnit = playerGO.GetComponent<Unit>();
+        GameObject enemyGO = Instantiate(enemyPrefab, enemyBattleStation);
+        enemyUnit = enemyGO.GetComponent<Unit>();
 
-		GameObject enemyGO = Instantiate(enemyPrefab, enemyBattleStation);
-		enemyUnit = enemyGO.GetComponent<Unit>();
+        dialogueText.text = enemyUnit.unitName + " is an enemy!";
 
-		dialogueText.text = enemyUnit.unitName + " is an enemy!";
+        playerHUD.setHUD(playerUnit);
+        enemyHUD.setHUD(enemyUnit);
 
-		playerHUD.setHUD(playerUnit);
-		enemyHUD.setHUD(enemyUnit);
+        yield return new WaitForSeconds(2f);
 
-		yield return new WaitForSeconds(2f);
+        state = BattleState.PLAYERTURN;
+        PlayerTurn();
+    }
 
-		state = BattleState.PLAYERTURN;
-		PlayerTurn();
-	}
+    IEnumerator PlayerAttack()
+    {
+        int action = Random.Range(0, 2);
+        Scene activeScene = SceneManager.GetActiveScene();
 
-	IEnumerator PlayerAttack()
-	{
-		int action = Random.Range(0, 2);
-		Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "Level3")
+        {
+            if (action == 1)
+            {
+                dialogueText.text = "Enemy blocks your attack!!";
+                yield return new WaitForSeconds(2f);
 
-		if (activeScene.name == "Level3")
-		{
-			if (action == 1)
-			{
-				dialogueText.text = "Enemy blocks your attack!!";
-				yield return new WaitForSeconds(2f);
-				state = BattleState.ENEMYTURN;
-				StartCoroutine(EnemyTurn());
-				actionTaken = false;
-				yield break;
-			}
-		}
-		
-		bool isDead = enemyUnit.TakeDamage(playerUnit.damage);
-		enemyHUD.SetHp(enemyUnit.currentHealth);
-		dialogueText.text = "The attack is successful!";
-		
-		yield return new WaitForSeconds(2f);
+                state = BattleState.ENEMYTURN;
+                StartCoroutine(EnemyTurn());
+                actionTaken = false;
+                yield break;
+            }
+        }
 
-		if(isDead)
-		{
-			state = BattleState.WON;
-			StartCoroutine(EndBattle());
-			yield break;
-		} 
-		
-		actionTaken = false;
-		state = BattleState.ENEMYTURN;
-		StartCoroutine(EnemyTurn());
-	}
+        bool isDead = enemyUnit.TakeDamage(playerUnit.damage);
+        enemyHUD.SetHp(enemyUnit.currentHealth);
+        dialogueText.text = "The attack is successful!";
 
-	IEnumerator EnemyTurn()
-	{
-		
-		int action = Random.Range(0, 2);
-		Scene activeScene = SceneManager.GetActiveScene();
-		
-		if (activeScene.name == "Level2" || activeScene.name == "Level3")
-		{
-			if (action == 1)
-			{
-				if (enemyUnit.currentHealth < enemyUnit.maxHealth)
-				{
-					dialogueText.text = enemyUnit.unitName + " healed himself!";
-					enemyUnit.Heal(5);
-					enemyHUD.SetHp(enemyUnit.currentHealth);
-					yield return new WaitForSeconds(1f);
-					state = BattleState.PLAYERTURN;
-					PlayerTurn();
-					yield break;
-				}
-			}
-		}
-		
-		int randomDamage = enemyUnit.GenerateRandomDamage(1, 11);
-		bool isDead = playerUnit.TakeDamage(randomDamage);
-		dialogueText.text = enemyUnit.unitName + " does " + randomDamage + " damage!";
-		playerHUD.SetHp(playerUnit.currentHealth);
-		yield return new WaitForSeconds(1f);
-		
-		if(isDead)
-		{
-			state = BattleState.LOST;
-			StartCoroutine(EndBattle());
-			yield break;
-		} 
-		
-		state = BattleState.PLAYERTURN;
-		PlayerTurn();
+        yield return new WaitForSeconds(2f);
 
-	}
+        if (isDead)
+        {
+            state = BattleState.WON;
+            StartCoroutine(EndBattle());
+            yield break;
+        }
 
-	IEnumerator EndBattle()
-	{
-		if(state == BattleState.WON)
-		{
-			if (SceneManager.GetSceneByName("Level1") == SceneManager.GetActiveScene())
-			{
-				dialogueText.text = "You won! Next level start in 5 seconds";
-			
-				yield return new WaitForSeconds(5f);
-			
-				SceneManager.LoadScene("Level2");
-			} else if (SceneManager.GetSceneByName("Level2") == SceneManager.GetActiveScene())
-			{
-				dialogueText.text = "You won! Next level start in 5 seconds";
-				
-				yield return new WaitForSeconds(5f);
-			
-				SceneManager.LoadScene("Level3");
-			}else if (SceneManager.GetSceneByName("Level3") == SceneManager.GetActiveScene())
-			{
-				dialogueText.text = "You finished the game! Returning to the main menu";
-				
-				yield return new WaitForSeconds(5f);
-			
-				SceneManager.LoadScene("MainMenu");
-			}
+        actionTaken = false;
+        state = BattleState.ENEMYTURN;
+        StartCoroutine(EnemyTurn());
+    }
 
-		} else if (state == BattleState.LOST)
-		{
-			dialogueText.text = "You lost! Level will restart in 5 seconds";
-			
-			yield return new WaitForSeconds(5f);
-			
-			SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-		}
-	}
+    IEnumerator EnemyTurn()
+    {
+        int action = Random.Range(0, 2);
+        Scene activeScene = SceneManager.GetActiveScene();
 
-	void PlayerTurn()
-	{
-		dialogueText.text = "Choose an action:";
-	}
+        if (activeScene.name == "Level2" || activeScene.name == "Level3")
+        {
+            if (action == 1)
+            {
+                if (enemyUnit.currentHealth < enemyUnit.maxHealth)
+                {
+                    dialogueText.text = enemyUnit.unitName + " healed himself!";
+                    enemyUnit.Heal(5);
+                    enemyHUD.SetHp(enemyUnit.currentHealth);
+                    yield return new WaitForSeconds(1f);
+                    state = BattleState.PLAYERTURN;
+                    PlayerTurn();
+                    yield break;
+                }
+            }
+        }
 
-	IEnumerator PlayerHeal()
-	{
-		if (playerUnit.currentHealth < playerUnit.maxHealth)
-		{
-			playerUnit.Heal(5);
+        int randomDamage = enemyUnit.GenerateRandomDamage(1, 11);
 
-			playerHUD.SetHp(playerUnit.currentHealth);
-			dialogueText.text = "You healed!";
-			yield return new WaitForSeconds(2f);
+        if (playerUnit.isBlocking)
+        {
+            int blockChance = Random.Range(0, 2); // 50% kans om succesvol te blokken
+            if (blockChance == 1)
+            {
+                dialogueText.text = "You successfully blocked the attack!";
+            }
+            else
+            {
+                dialogueText.text = "You tried to block, but failed!";
+                bool isDead = playerUnit.TakeDamage(randomDamage);
+                playerHUD.SetHp(playerUnit.currentHealth);
 
-			actionTaken = false;
-			state = BattleState.ENEMYTURN;
-			StartCoroutine(EnemyTurn());
-		}
-		else
-		{
-			dialogueText.text = "Your full HP you cant heal!";
-			
-			yield return new WaitForSeconds(2f);
-			
-			actionTaken = false;
-			state = BattleState.PLAYERTURN;
-			PlayerTurn();
-		}
+                if (isDead)
+                {
+                    state = BattleState.LOST;
+                    StartCoroutine(EndBattle());
+                    yield break;
+                }
+            }
+            playerUnit.isBlocking = false; // Reset de block-status na de aanval
+        }
+        else
+        {
+            bool isDead = playerUnit.TakeDamage(randomDamage);
+            dialogueText.text = enemyUnit.unitName + " does " + randomDamage + " damage!";
+            playerHUD.SetHp(playerUnit.currentHealth);
 
-	}
+            if (isDead)
+            {
+                state = BattleState.LOST;
+                StartCoroutine(EndBattle());
+                yield break;
+            }
+        }
 
-	public void OnAttackButton()
-	{
-		if (state != BattleState.PLAYERTURN || actionTaken)
-			return;
-		
-		actionTaken = true;
-		StartCoroutine(PlayerAttack());
-	}
+        yield return new WaitForSeconds(1f);
 
-	public void OnHealButton()
-	{
-		if (state != BattleState.PLAYERTURN || actionTaken)
-			return;
+        state = BattleState.PLAYERTURN;
+        PlayerTurn();
+    }
 
-		actionTaken = true;
-		StartCoroutine(PlayerHeal());
-	}
+    IEnumerator EndBattle()
+    {
+        if (state == BattleState.WON)
+        {
+            dialogueText.text = "You won! Next level starts in 5 seconds";
 
+            yield return new WaitForSeconds(5f);
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
+        else if (state == BattleState.LOST)
+        {
+            dialogueText.text = "You lost! Level will restart in 5 seconds";
+
+            yield return new WaitForSeconds(5f);
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+    }
+
+    void PlayerTurn()
+    {
+        dialogueText.text = "Choose an action:";
+    }
+
+    IEnumerator PlayerHeal()
+    {
+        if (playerUnit.currentHealth < playerUnit.maxHealth)
+        {
+            playerUnit.Heal(5);
+
+            playerHUD.SetHp(playerUnit.currentHealth);
+            dialogueText.text = "You healed!";
+            yield return new WaitForSeconds(2f);
+
+            actionTaken = false;
+            state = BattleState.ENEMYTURN;
+            StartCoroutine(EnemyTurn());
+        }
+        else
+        {
+            dialogueText.text = "Your HP is full! You can't heal now.";
+
+            yield return new WaitForSeconds(2f);
+
+            actionTaken = false;
+            state = BattleState.PLAYERTURN;
+            PlayerTurn();
+        }
+    }
+
+    public void OnAttackButton()
+    {
+        if (state != BattleState.PLAYERTURN || actionTaken)
+            return;
+
+        actionTaken = true;
+        StartCoroutine(PlayerAttack());
+    }
+
+    public void OnHealButton()
+    {
+        if (state != BattleState.PLAYERTURN || actionTaken)
+            return;
+
+        actionTaken = true;
+        StartCoroutine(PlayerHeal());
+    }
+
+    public void OnBlockButton()
+    {
+        if (state != BattleState.PLAYERTURN || actionTaken)
+            return;
+
+        StartCoroutine(PlayerBlock());
+    }
+
+    IEnumerator PlayerBlock()
+    {
+        dialogueText.text = "You prepare to block!";
+        playerUnit.isBlocking = true;
+
+        yield return new WaitForSeconds(1f);
+
+        dialogueText.text = "You can still attack or heal!";
+    }
 }

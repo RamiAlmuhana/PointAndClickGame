@@ -134,6 +134,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitName: Bombaclat
   unitLevel: 999
-  damage: 30
+  damage: 5
   maxHealth: 30
   currentHealth: 30
+  isBlocking: 0
