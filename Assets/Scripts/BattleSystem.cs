@@ -22,6 +22,8 @@ public class BattleSystem : MonoBehaviour
 
     public BattleHud playerHUD;
     public BattleHud enemyHUD;
+    
+    public Slider heavyAttackSlider;
 
     public BattleState state;
 
@@ -47,6 +49,8 @@ public class BattleSystem : MonoBehaviour
 
         playerHUD.setHUD(playerUnit);
         enemyHUD.setHUD(enemyUnit);
+        
+        heavyAttackSlider.gameObject.SetActive(false);
 
         yield return new WaitForSeconds(2f);
 
@@ -93,6 +97,23 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator HeavyAttack()
     {
+        dialogueText.text = "Charging heavy attack...";
+
+        heavyAttackSlider.gameObject.SetActive(true);
+        heavyAttackSlider.value = 0;
+
+        float chargeTime = 3f;
+        float timer = 0f;
+
+        while (timer < chargeTime)
+        {
+            timer += Time.deltaTime;
+            heavyAttackSlider.value = timer / chargeTime;
+            yield return null;
+        }
+
+        heavyAttackSlider.gameObject.SetActive(false);
+
         dialogueText.text = "You unleash a powerful heavy attack!";
         yield return new WaitForSeconds(1f);
 
@@ -218,7 +239,10 @@ public class BattleSystem : MonoBehaviour
 
     public void OnHeavyAttackButton()
     {
-        if (state != BattleState.PLAYERTURN || actionTaken || heavyAttackUsed)
+        if (state != BattleState.PLAYERTURN || actionTaken)
+            return;
+
+        if (heavyAttackUsed)
         {
             dialogueText.text = "You can only use the Heavy Attack once!";
             return;
@@ -227,6 +251,7 @@ public class BattleSystem : MonoBehaviour
         actionTaken = true;
         StartCoroutine(HeavyAttack());
     }
+
     
     
     IEnumerator PlayerHeal()
