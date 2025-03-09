@@ -27,6 +27,8 @@ public class BattleSystem : MonoBehaviour
 
     public bool actionTaken = false;
 
+    private bool heavyAttackUsed = false;
+
     void Start()
     {
         state = BattleState.START;
@@ -89,6 +91,31 @@ public class BattleSystem : MonoBehaviour
         StartCoroutine(EnemyTurn());
     }
 
+    IEnumerator HeavyAttack()
+    {
+        dialogueText.text = "You unleash a powerful heavy attack!";
+        yield return new WaitForSeconds(1f);
+
+        bool isDead = enemyUnit.TakeDamage(15);
+        enemyHUD.SetHp(enemyUnit.currentHealth);
+
+        dialogueText.text = "Your heavy attack dealt 15 damage!";
+        heavyAttackUsed = true;
+
+        yield return new WaitForSeconds(2f);
+
+        if (isDead)
+        {
+            state = BattleState.WON;
+            StartCoroutine(EndBattle());
+            yield break;
+        }
+
+        actionTaken = false;
+        state = BattleState.ENEMYTURN;
+        StartCoroutine(EnemyTurn());
+    }
+
     IEnumerator EnemyTurn()
     {
         int action = Random.Range(0, 2);
@@ -115,7 +142,7 @@ public class BattleSystem : MonoBehaviour
 
         if (playerUnit.isBlocking)
         {
-            int blockChance = Random.Range(0, 2); // 50% kans om succesvol te blokken
+            int blockChance = Random.Range(0, 2);
             if (blockChance == 1)
             {
                 dialogueText.text = "You successfully blocked the attack!";
@@ -133,7 +160,7 @@ public class BattleSystem : MonoBehaviour
                     yield break;
                 }
             }
-            playerUnit.isBlocking = false; // Reset de block-status na de aanval
+            playerUnit.isBlocking = false;
         }
         else
         {
@@ -180,6 +207,28 @@ public class BattleSystem : MonoBehaviour
         dialogueText.text = "Choose an action:";
     }
 
+    public void OnAttackButton()
+    {
+        if (state != BattleState.PLAYERTURN || actionTaken)
+            return;
+
+        actionTaken = true;
+        StartCoroutine(PlayerAttack());
+    }
+
+    public void OnHeavyAttackButton()
+    {
+        if (state != BattleState.PLAYERTURN || actionTaken || heavyAttackUsed)
+        {
+            dialogueText.text = "You can only use the Heavy Attack once!";
+            return;
+        }
+
+        actionTaken = true;
+        StartCoroutine(HeavyAttack());
+    }
+    
+    
     IEnumerator PlayerHeal()
     {
         if (playerUnit.currentHealth < playerUnit.maxHealth)
@@ -204,15 +253,6 @@ public class BattleSystem : MonoBehaviour
             state = BattleState.PLAYERTURN;
             PlayerTurn();
         }
-    }
-
-    public void OnAttackButton()
-    {
-        if (state != BattleState.PLAYERTURN || actionTaken)
-            return;
-
-        actionTaken = true;
-        StartCoroutine(PlayerAttack());
     }
 
     public void OnHealButton()
