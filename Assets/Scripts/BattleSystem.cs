@@ -30,6 +30,8 @@ public class BattleSystem : MonoBehaviour
     public bool actionTaken = false;
 
     private bool heavyAttackUsed = false;
+    
+    private bool enemyHeavyAttackUsed = false;
 
     void Start()
     {
@@ -139,8 +141,39 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator EnemyTurn()
     {
-        int action = Random.Range(0, 2);
         Scene activeScene = SceneManager.GetActiveScene();
+        
+        if (activeScene.name == "Level3" && !enemyHeavyAttackUsed)
+        {
+            int heavyAttackChance = Random.Range(0, 4);
+
+            if (heavyAttackChance == 1)
+            {
+                dialogueText.text = enemyUnit.unitName + " unleashes a powerful heavy attack!";
+                yield return new WaitForSeconds(2f);
+
+                bool isDead = playerUnit.TakeDamage(15);
+                playerHUD.SetHp(playerUnit.currentHealth);
+
+                dialogueText.text = "You took 15 damage from the heavy attack!";
+                enemyHeavyAttackUsed = true;
+
+                yield return new WaitForSeconds(2f);
+
+                if (isDead)
+                {
+                    state = BattleState.LOST;
+                    StartCoroutine(EndBattle());
+                    yield break;
+                }
+
+                state = BattleState.PLAYERTURN;
+                PlayerTurn();
+                yield break;
+            }
+        }
+        
+        int action = Random.Range(0, 2);
 
         if (activeScene.name == "Level2" || activeScene.name == "Level3")
         {
@@ -152,13 +185,14 @@ public class BattleSystem : MonoBehaviour
                     enemyUnit.Heal(5);
                     enemyHUD.SetHp(enemyUnit.currentHealth);
                     yield return new WaitForSeconds(1f);
+
                     state = BattleState.PLAYERTURN;
                     PlayerTurn();
                     yield break;
                 }
             }
         }
-
+        
         int randomDamage = enemyUnit.GenerateRandomDamage(1, 11);
 
         if (playerUnit.isBlocking)
@@ -181,7 +215,7 @@ public class BattleSystem : MonoBehaviour
                     yield break;
                 }
             }
-            playerUnit.isBlocking = false;
+            playerUnit.isBlocking = false; 
         }
         else
         {
